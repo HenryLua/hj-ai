@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HJ AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@300;400;500;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #08080b;
+  --surface: #0f0f14;
+  --surface2: #161620;
+  --surface3: #1c1c28;
+  --border: #252530;
+  --border2: #2e2e3e;
+  --accent: #c8a84b;
+  --accent2: #8b5cf6;
+  --accent3: #10b981;
+  --accent4: #3b82f6;
+  --accent5: #f59e0b;
+  --text: #e2ddd4;
+  --text-muted: #5a5668;
+  --text-dim: #8c8896;
+  --radius: 6px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.7;
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+.logo-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Modes */
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 14px 18px 6px;
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s;
+  border-radius: 0;
+}
+
+.mode-btn:hover { background: var(--surface2); color: var(--text); }
+
+.mode-btn.active {
+  background: var(--surface2);
+  color: var(--text);
+  border-left: 2px solid var(--accent);
+  padding-left: 16px;
+}
+
+.mode-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* Conversations */
+#conv-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+#conv-list::-webkit-scrollbar { width: 3px; }
+#conv-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.conv-item {
+  padding: 8px 18px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.15s;
+}
+
+.conv-item:hover { background: var(--surface2); color: var(--text); }
+.conv-item.active { background: var(--surface2); color: var(--accent); }
+
+.sidebar-footer {
+  border-top: 1px solid var(--border);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── MAIN ── */
+#main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* TOPBAR */
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.mode-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  padding: 4px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+.topbar-spacer { flex: 1; }
+
+select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 5px 8px;
+  border-radius: var(--radius);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+select:focus { border-color: var(--accent); }
+
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background 0.3s;
+  flex-shrink: 0;
+}
+
+.status-dot.ok { background: var(--accent3); }
+.status-dot.loading { background: var(--accent); animation: pulse 1s infinite; }
+.status-dot.err { background: #ef4444; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* CHAT */
+#chat {
+  flex: 1;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+#chat::-webkit-scrollbar { width: 4px; }
+#chat::-webkit-scrollbar-track { background: transparent; }
+#chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.message {
+  display: flex;
+  gap: 14px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #0f0f14;
+  animation: msgIn 0.2s ease;
+}
+
+@keyframes msgIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+
+.message.user { background: var(--surface); }
+.message.ai { background: var(--bg); }
+.message.system-note { justify-content: center; padding: 8px 24px; background: transparent; }
+
+.msg-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.msg-avatar.user-av { background: var(--surface3); color: var(--accent); font-family: 'Playfair Display', serif; font-weight: 700; }
+.msg-avatar.ai-av { background: #1a1a2e; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: -0.05em; }
+
+.msg-body { flex: 1; min-width: 0; }
+
+.msg-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.msg-meta .model-tag {
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.msg-content { color: var(--text); }
+.msg-content p { margin-bottom: 0.6em; }
+.msg-content p:last-child { margin-bottom: 0; }
+
+.msg-content h1,.msg-content h2,.msg-content h3 {
+  font-family: 'Playfair Display', serif;
+  color: var(--accent);
+  margin: 14px 0 6px;
+  line-height: 1.3;
+}
+.msg-content h1{font-size:1.4em}
+.msg-content h2{font-size:1.2em}
+.msg-content h3{font-size:1.05em}
+
+.msg-content code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #93c5fd;
+}
+
+.msg-content pre {
+  background: #0b0b10;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  margin: 10px 0;
+}
+
+.msg-content pre code {
+  background: none; border: none; padding: 0;
+  color: #cbd5e1; font-size: 13px;
+}
+
+.msg-content ul,.msg-content ol { padding-left: 20px; margin: 6px 0; }
+.msg-content li { margin-bottom: 3px; }
+.msg-content strong { color: #f0ead8; font-weight: 600; }
+.msg-content em { font-style: italic; color: var(--text-dim); }
+
+.msg-content blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 8px 14px;
+  margin: 10px 0;
+  background: var(--surface2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.msg-content table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14.5px; }
+.msg-content th { background: var(--surface3); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 8px 12px; border: 1px solid var(--border); text-align: left; letter-spacing: 0.05em; }
+.msg-content td { padding: 7px 12px; border: 1px solid var(--border); }
+.msg-content tr:nth-child(even) td { background: var(--surface2); }
+
+.msg-content a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+.system-note span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+/* TYPING */
+.typing-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.typing-dots span {
+  width: 5px; height: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: blink 1.2s infinite;
+}
+
+.typing-dots span:nth-child(2){animation-delay:0.2s}
+.typing-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes blink{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+
+/* INPUT */
+#input-area {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 14px 20px 16px;
+  flex-shrink: 0;
+}
+
+.input-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+#user-input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Lora', serif;
+  font-size: 15.5px;
+  line-height: 1.55;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  resize: none;
+  outline: none;
+  min-height: 44px;
+  max-height: 200px;
+  overflow-y: auto;
+  transition: border-color 0.2s;
+}
+
+#user-input:focus { border-color: var(--accent); }
+#user-input::placeholder { color: var(--text-muted); }
+
+#send-btn {
+  width: 44px; height: 44px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--accent);
+  color: #08080b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+  transition: all 0.2s;
+}
+
+#send-btn:hover { background: #ddb95a; }
+#send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+/* BUTTONS */
+.btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 5px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn-ghost { background: transparent; color: var(--text-muted); }
+.btn-ghost:hover { border-color: var(--border2); color: var(--text-dim); }
+.btn-accent { background: transparent; color: var(--accent); border-color: var(--accent); }
+.btn-accent:hover { background: var(--accent); color: var(--bg); }
+
+/* API KEY MODAL */
+#api-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+#api-modal.hidden { display: none; }
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 32px;
+  width: 420px;
+  max-width: 90vw;
+}
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.modal-desc {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.modal-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.modal-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  outline: none;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+
+.modal-input:focus { border-color: var(--accent); }
+
+.modal-note {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  line-height: 1.6;
+}
+
+.modal-note a { color: var(--accent); }
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* WELCOME */
+#welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  gap: 24px;
+}
+
+#welcome.hidden { display: none; }
+
+.welcome-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 52px;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 1;
+  position: relative;
+}
+
+.welcome-logo::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 2px;
+  background: var(--accent);
+  margin: 12px auto 0;
+}
+
+.welcome-title {
+  font-size: 18px;
+  color: var(--text-dim);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.welcome-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 540px;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--surface3);
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">HJ AI</div>
+    <div class="logo-sub">Assistente Pessoal</div>
+  </div>
+
+  <div class="section-label">Modo</div>
+
+  <button class="mode-btn active" data-mode="geral" onclick="setMode('geral', this)">
+    <div class="mode-icon" style="background:#1e1e2e;color:#c8a84b">⚡</div>
+    Geral
+  </button>
+  <button class="mode-btn" data-mode="juridico" onclick="setMode('juridico', this)">
+    <div class="mode-icon" style="background:#1a1a2e;color:#8b5cf6">⚖</div>
+    Jurídico
+  </button>
+  <button class="mode-btn" data-mode="academico" onclick="setMode('academico', this)">
+    <div class="mode-icon" style="background:#0f1f1a;color:#10b981">📖</div>
+    Acadêmico
+  </button>
+  <button class="mode-btn" data-mode="dev" onclick="setMode('dev', this)">
+    <div class="mode-icon" style="background:#0f1520;color:#3b82f6">💻</div>
+    Dev / Código
+  </button>
+  <button class="mode-btn" data-mode="ebook" onclick="setMode('ebook', this)">
+    <div class="mode-icon" style="background:#201510;color:#f59e0b">✍</div>
+    Conteúdo / Ebook
+  </button>
+  <button class="mode-btn" data-mode="pesquisa" onclick="setMode('pesquisa', this)">
+    <div class="mode-icon" style="background:#1a0f20;color:#a855f7">🔍</div>
+    Pesquisa
+  </button>
+
+  <div class="section-label" style="margin-top:8px">Conversas</div>
+  <div id="conv-list"></div>
+
+  <div class="sidebar-footer">
+    <button class="btn btn-accent" onclick="newConversation()" style="width:100%;justify-content:center;display:flex">+ Nova conversa</button>
+    <button class="btn btn-ghost" onclick="showApiModal()" style="width:100%;justify-content:center;display:flex">⚙ API Key</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <div class="mode-badge" id="mode-badge">
+      <span>⚡</span>
+      <span id="mode-label-top">Modo Geral</span>
+    </div>
+    <div class="topbar-spacer"></div>
+    <select id="model-select">
+      <optgroup label="Grátis (automático)">
+        <option value="openrouter/free">Auto - Melhor grátis disponível ⭐</option>
+      </optgroup>
+      <optgroup label="Grátis (específico)">
+        <option value="deepseek/deepseek-r1:free">DeepSeek R1 (grátis)</option>
+        <option value="deepseek/deepseek-chat-v3.1:free">DeepSeek V3.1 (grátis)</option>
+        <option value="meta-llama/llama-4-maverick:free">LLaMA 4 Maverick (grátis)</option>
+        <option value="qwen/qwen3-235b-a22b:free">Qwen3 235B (grátis)</option>
+        <option value="x-ai/grok-4-fast:free">Grok 4 Fast (grátis)</option>
+      </optgroup>
+      <optgroup label="Pago (barato)">
+        <option value="deepseek/deepseek-chat-v3.1">DeepSeek V3.1 (barato)</option>
+        <option value="google/gemini-2.5-pro">Gemini 2.5 Pro</option>
+        <option value="anthropic/claude-sonnet-4-5">Claude Sonnet 4.5</option>
+      </optgroup>
+    </select>
+    <div class="status-dot" id="status-dot"></div>
+  </div>
+
+  <!-- WELCOME -->
+  <div id="welcome">
+    <div class="welcome-logo">HJ</div>
+    <div class="welcome-title">Seu assistente pessoal · Direito, Dev, Conteúdo, Pesquisa</div>
+    <div class="welcome-chips">
+      <div class="chip" onclick="quickPrompt('Analise os fundamentos do garantismo penal de Ferrajoli')">⚖ Garantismo penal</div>
+      <div class="chip" onclick="quickPrompt('Escreva um memorial defensivo para o Tribunal do Júri')">📋 Memorial Júri</div>
+      <div class="chip" onclick="quickPrompt('Me ajude a estruturar um ebook sobre dominância e persuasão')">✍ Estruturar ebook</div>
+      <div class="chip" onclick="quickPrompt('Crie um componente Node.js para autenticação JWT')">💻 Código Node.js</div>
+      <div class="chip" onclick="quickPrompt('Pesquise sobre o estado da arte em IA generativa em 2025')">🔍 Pesquisa IA</div>
+      <div class="chip" onclick="quickPrompt('Redija um fichamento no padrão ABNT NBR 10520:2023')">📚 Fichamento ABNT</div>
+      <div class="chip" onclick="quickPrompt('Ajude-me a compor uma letra para a B.IA Band')">🎵 B.IA Band</div>
+      <div class="chip" onclick="quickPrompt('Analise a tensão inquisitório-acusatória no processo penal brasileiro')">⚖ Processo Penal</div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="chat" style="display:none; flex:1; overflow-y:auto;"></div>
+
+  <!-- INPUT -->
+  <div id="input-area">
+    <div id="file-preview" style="display:none;margin-bottom:8px;padding:6px 10px;background:var(--surface3);border:1px solid var(--border);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">
+      📎 <span id="file-name"></span>
+      <button onclick="removeFile()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;margin-left:8px;">✕</button>
+    </div>
+    <div class="input-wrap">
+      <label for="file-upload" title="Anexar arquivo (.txt, .pdf, .md, .js, .py, .html, .json, .csv)" style="width:44px;height:44px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📎</label>
+      <input type="file" id="file-upload" style="display:none" accept=".txt,.md,.js,.py,.html,.css,.json,.csv" onchange="handleFileUpload(event)">
+      <textarea
+        id="user-input"
+        placeholder="Digite sua mensagem... (Enter envia, Shift+Enter quebra linha)"
+        rows="1"
+      ></textarea>
+      <button id="send-btn" onclick="sendMessage()" title="Enviar">➤</button>
+    </div>
+    <div class="input-footer">
+      <div class="hint" id="token-hint">Modo: <span id="current-mode-hint">Geral</span></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="clearChat()">Limpar</button>
+        <button class="btn btn-ghost" onclick="copyLastResponse()">Copiar resposta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- API KEY MODAL -->
+<div id="api-modal" class="hidden">
+  <div class="modal-box">
+    <div class="modal-title">Configurar API Key</div>
+    <div class="modal-desc">
+      Crie sua conta gratuita em <strong style="color:var(--accent)">openrouter.ai</strong> e gere uma API key.<br>
+      A chave fica salva apenas no seu navegador.
+    </div>
+    <div class="modal-label">OpenRouter API Key</div>
+    <input type="password" class="modal-input" id="modal-api-input" placeholder="sk-or-v1-..." />
+    <div class="modal-label">Seu nome (para personalização)</div>
+    <input type="text" class="modal-input" id="modal-name-input" placeholder="Henry" />
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="hideApiModal()">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveApiKey()">Salvar</button>
+    </div>
+    <div class="modal-note">
+      🔒 Armazenado localmente no localStorage do browser.<br>
+      Nunca enviado a terceiros além da OpenRouter.<br><br>
+      Modelos gratuitos: não precisam de saldo, apenas conta criada.
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let apiKey = localStorage.getItem('hjai_key') || '';
+let userName = localStorage.getItem('hjai_name') || 'Henry';
+let currentMode = 'geral';
+let conversations = JSON.parse(localStorage.getItem('hjai_convs') || '[]');
+let activeConvId = null;
+let messages = []; // current conversation messages
+let isLoading = false;
+
+// ── MODE CONFIGS ──
+const MODES = {
+  geral: {
+    icon: '⚡', label: 'Modo Geral', color: '#c8a84b',
+    system: `Você é HJ AI, assistente pessoal de ${userName}. Ele é estudante de Direito (3º ano, FADIR/FURG), estagiário de Direito Penal, desenvolvedor de software (HJ ADV, HJ PDV, HJ Store), músico e criador de conteúdo. Atue como um assistente versátil e inteligente: direto, preciso e sem enrolação. Responda em português brasileiro. Adapte o tom conforme o assunto: técnico para dev, formal para jurídico, criativo para conteúdo.`
+  },
+  juridico: {
+    icon: '⚖', label: 'Modo Jurídico', color: '#8b5cf6',
+    system: `Você é HJ AI no modo jurídico, assistente especializado de ${userName}, estudante de Direito na FADIR/FURG e estagiário de Direito Penal. Sua orientação é garantista (Ferrajoli, Aury Lopes Jr., Alexandre Morais da Rosa). Especialidades: Tribunal do Júri, Direito Penal, processo penal acusatório, in dubio pro reo. Auxilia com: memoriais, razões de apelação, RESE, petições, análise doutrinária, fichamentos ABNT (NBR 10520:2023 e NBR 6023:2025), análise de precedentes STJ/STF. Tom: formal, técnico, preciso. Sempre em português brasileiro. Nunca use travessão (—).`
+  },
+  academico: {
+    icon: '📖', label: 'Modo Acadêmico', color: '#10b981',
+    system: `Você é HJ AI no modo acadêmico, assistente de ${userName} para pesquisa e produção científica. Área principal: Direito Processual Penal comparado (Brasil, EUA, Portugal, Uruguai), tensão inquisitório-acusatória, garantismo, supremocracia do STF. Auxilia com: fichamentos, resumos, resenhas, artigos científicos, TCC, referências ABNT NBR 6023:2025, citações ABNT NBR 10520:2023, revisão de textos acadêmicos. Tom: rigoroso, acadêmico, claro. Sempre em português brasileiro. Nunca use travessão (—).`
+  },
+  dev: {
+    icon: '💻', label: 'Modo Dev', color: '#3b82f6',
+    system: `Você é HJ AI no modo desenvolvimento, assistente técnico de ${userName}. Stack principal: Node.js, JavaScript, Supabase, GitHub Pages, Vercel. Projetos: HJ ADV (sistema de advocacia, WhatsApp bot via Baileys, IA via Gemini/Groq), HJ PDV (ponto de venda), HJ Store (plataforma de afiliados em Supabase + GitHub Pages). Auxilia com: código, arquitetura, debugging, APIs, banco de dados, deploy. Seja direto: código limpo, sem enrolação, explique apenas o necessário. Sempre em português brasileiro.`
+  },
+  ebook: {
+    icon: '✍', label: 'Conteúdo / Ebook', color: '#f59e0b',
+    system: `Você é HJ AI no modo criativo/conteúdo, assistente de ${userName} para produção de ebooks, roteiros, copywriting e criação musical. Projetos: ecossistema "Dominância Invisível" (ebook, workbook, mini-ebooks, scripts hipnóticos, curso), B.IA Band (banda virtual estilo Gorillaz, composições e letras por Henry). Tom: criativo, persuasivo, impactante. Adapte conforme o pedido: provocador para infoprodutos, poético para música, narrativo para ebooks. Sempre em português brasileiro.`
+  },
+  pesquisa: {
+    icon: '🔍', label: 'Pesquisa', color: '#a855f7',
+    system: `Você é HJ AI no modo pesquisa, assistente de ${userName} para investigação e síntese de informações. Perfil do usuário: estudante de Direito, desenvolvedor, criador de conteúdo. Auxilia com: pesquisa de temas variados, síntese de informações, comparação de fontes, tendências em IA/tecnologia/direito, curadoria de conhecimento. Seja analítico, aponte múltiplas perspectivas, cite fontes quando relevante. Sempre em português brasileiro.`
+  }
+};
+
+// ── FILE UPLOAD ──
+let attachedFileContent = '';
+let attachedFileName = '';
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    attachedFileContent = e.target.result;
+    attachedFileName = file.name;
+    const preview = document.getElementById('file-preview');
+    document.getElementById('file-name').textContent = file.name;
+    preview.style.display = 'block';
+  };
+  reader.readAsText(file);
+}
+
+function removeFile() {
+  attachedFileContent = '';
+  attachedFileName = '';
+  document.getElementById('file-preview').style.display = 'none';
+  document.getElementById('file-upload').value = '';
+}
+
+// ── INIT ──
+function init() {
+  renderConvList();
+  updateStatusDot();
+
+  if (!apiKey) {
+    showApiModal();
+  } else {
+    updateStatusDot('ok');
+  }
+
+  const ta = document.getElementById('user-input');
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  ta.addEventListener('input', () => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+  });
+}
+
+// ── API KEY MODAL ──
+function showApiModal() {
+  document.getElementById('api-modal').classList.remove('hidden');
+  document.getElementById('modal-api-input').value = apiKey;
+  document.getElementById('modal-name-input').value = userName;
+}
+
+function hideApiModal() {
+  document.getElementById('api-modal').classList.add('hidden');
+}
+
+function saveApiKey() {
+  const key = document.getElementById('modal-api-input').value.trim();
+  const name = document.getElementById('modal-name-input').value.trim() || 'Henry';
+  apiKey = key;
+  userName = name;
+  localStorage.setItem('hjai_key', key);
+  localStorage.setItem('hjai_name', name);
+  hideApiModal();
+  updateStatusDot(key ? 'ok' : '');
+  // update system prompts with new name
+  Object.keys(MODES).forEach(m => {
+    MODES[m].system = MODES[m].system.replace(/de [\w\s]+\./g, `de ${name}.`);
+  });
+}
+
+// ── MODE ──
+function setMode(mode, btn) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const cfg = MODES[mode];
+  document.getElementById('mode-label-top').textContent = cfg.label;
+  document.getElementById('current-mode-hint').textContent = cfg.label;
+  document.getElementById('mode-badge').querySelector('span').textContent = cfg.icon;
+
+  const placeholder = {
+    geral: 'O que você precisa hoje?',
+    juridico: 'Peça um memorial, análise doutrinária, petição...',
+    academico: 'Pesquise, estruture fichamentos, revise textos...',
+    dev: 'Descreva o código, bug ou arquitetura...',
+    ebook: 'Estruture capítulos, escreva letras, roteiros...',
+    pesquisa: 'Qual tema você quer investigar?'
+  };
+
+  document.getElementById('user-input').placeholder = placeholder[mode] || 'Digite sua mensagem...';
+}
+
+// ── CONVERSATIONS ──
+function newConversation() {
+  saveCurrentConversation();
+  messages = [];
+  activeConvId = null;
+  document.getElementById('chat').innerHTML = '';
+  document.getElementById('chat').style.display = 'none';
+  document.getElementById('welcome').classList.remove('hidden');
+  renderConvList();
+}
+
+function saveCurrentConversation() {
+  if (!messages.length) return;
+  const title = messages[0]?.content?.slice(0, 40) + '...' || 'Conversa';
+  if (activeConvId) {
+    const idx = conversations.findIndex(c => c.id === activeConvId);
+    if (idx !== -1) {
+      conversations[idx].messages = messages;
+      conversations[idx].title = title;
+    }
+  } else {
+    activeConvId = Date.now().toString();
+    conversations.unshift({ id: activeConvId, title, messages, mode: currentMode });
+    if (conversations.length > 40) conversations = conversations.slice(0, 40);
+  }
+  localStorage.setItem('hjai_convs', JSON.stringify(conversations));
+  renderConvList();
+}
+
+function loadConversation(id) {
+  saveCurrentConversation();
+  const conv = conversations.find(c => c.id === id);
+  if (!conv) return;
+  activeConvId = id;
+  messages = conv.messages || [];
+  document.getElementById('chat').innerHTML = '';
+  messages.forEach(m => {
+    if (m.role !== 'system') renderMessage(m.role, m.content, false);
+  });
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('chat').style.display = 'block';
+  scrollToBottom();
+  renderConvList();
+}
+
+function renderConvList() {
+  const list = document.getElementById('conv-list');
+  list.innerHTML = conversations.length === 0
+    ? '<div style="padding:12px 18px;font-family:JetBrains Mono,monospace;font-size:10px;color:var(--text-muted)">Nenhuma conversa ainda</div>'
+    : conversations.map(c => `
+      <div class="conv-item ${c.id === activeConvId ? 'active' : ''}" onclick="loadConversation('${c.id}')" title="${c.title}">
+        ${MODES[c.mode]?.icon || '⚡'} ${c.title}
+      </div>
+    `).join('');
+}
+
+// ── SEND MESSAGE ──
+async function sendMessage() {
+  if (isLoading) return;
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!apiKey) {
+    showApiModal();
+    return;
+  }
+
+  // Show chat, hide welcome
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('chat').style.display = 'block';
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  // Build messages array
+  const systemPrompt = MODES[currentMode]?.system || MODES.geral.system;
+
+  if (messages.length === 0) {
+    messages.push({ role: 'system', content: systemPrompt });
+  } else {
+    messages[0] = { role: 'system', content: systemPrompt };
+  }
+
+  const fullText = attachedFileContent ? text + '\n\n[Arquivo: ' + attachedFileName + ']\n```\n' + attachedFileContent.slice(0, 12000) + '\n```' : text;
+  messages.push({ role: 'user', content: fullText });
+  removeFile();
+  renderMessage('user', text);
+
+  // Show typing
+  const typingEl = showTyping();
+
+  isLoading = true;
+  document.getElementById('send-btn').disabled = true;
+  updateStatusDot('loading');
+
+  try {
+    const model = document.getElementById('model-select').value;
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://hj-ai.github.io',
+        'X-Title': 'HJ AI'
+      },
+      body: JSON.stringify({
+        model,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 4096,
+        stream: false
+      })
+    });
+
+    const data = await response.json();
+    console.log('API response:', JSON.stringify(data).slice(0,500));
+
+    if (data.error) throw new Error(JSON.stringify(data.error));
+
+    const reply = data.choices?.[0]?.message?.content || 'Sem resposta.';
+    messages.push({ role: 'assistant', content: reply });
+
+    typingEl.remove();
+    renderMessage('ai', reply, true, model);
+    saveCurrentConversation();
+    updateStatusDot('ok');
+  } catch (err) {
+    typingEl.remove();
+    renderSystemNote('Erro: ' + err.message);
+    updateStatusDot('err');
+  }
+
+  isLoading = false;
+  document.getElementById('send-btn').disabled = false;
+  scrollToBottom();
+}
+
+// ── RENDER ──
+function renderMessage(role, content, animate = true, model = '') {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = `message ${role}${animate ? '' : ''}`;
+
+  const avatarText = role === 'user' ? userName.charAt(0).toUpperCase() : 'AI';
+  const avatarClass = role === 'user' ? 'user-av' : 'ai-av';
+
+  const modelShort = model ? model.split('/').pop().replace(':free','').slice(0,18) : '';
+  const metaRight = role === 'ai' && modelShort
+    ? `<span class="model-tag">${modelShort}</span>`
+    : '';
+
+  div.innerHTML = `
+    <div class="msg-avatar ${avatarClass}">${avatarText}</div>
+    <div class="msg-body">
+      <div class="msg-meta">
+        <span>${role === 'user' ? userName : 'HJ AI'}</span>
+        ${metaRight}
+      </div>
+      <div class="msg-content">${parseMarkdown(content)}</div>
+    </div>
+  `;
+
+  chat.appendChild(div);
+  scrollToBottom();
+}
+
+function showTyping() {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'message ai';
+  div.innerHTML = `
+    <div class="msg-avatar ai-av">AI</div>
+    <div class="msg-body">
+      <div class="msg-meta"><span>HJ AI</span></div>
+      <div class="msg-content"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+    </div>
+  `;
+  chat.appendChild(div);
+  scrollToBottom();
+  return div;
+}
+
+function renderSystemNote(text) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'message system-note';
+  div.innerHTML = `<span>${text}</span>`;
+  chat.appendChild(div);
+}
+
+// ── MARKDOWN PARSER ──
+function parseMarkdown(text) {
+  let html = text
+    // code blocks
+    .replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
+      `<pre><code class="lang-${lang}">${escHtml(code.trim())}</code></pre>`)
+    // inline code
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    // headers
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    // bold italic
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // blockquote
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    // tables
+    .replace(/\|(.+)\|\n\|[-| :]+\|\n((?:\|.+\|\n?)+)/g, (_, header, rows) => {
+      const ths = header.split('|').filter(c => c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
+      const trs = rows.trim().split('\n').map(row => {
+        const tds = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
+        return `<tr>${tds}</tr>`;
+      }).join('');
+      return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+    })
+    // lists
+    .replace(/^[\*\-] (.+)$/gm, '<li>$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+    // paragraphs
+    .split('\n\n').map(block => {
+      if (block.startsWith('<')) return block;
+      if (block.includes('<li>')) return `<ul>${block}</ul>`;
+      return `<p>${block.replace(/\n/g, '<br>')}</p>`;
+    }).join('\n');
+
+  return html;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ── UTILS ──
+function scrollToBottom() {
+  const chat = document.getElementById('chat');
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function clearChat() {
+  if (!confirm('Limpar esta conversa?')) return;
+  messages = [];
+  activeConvId = null;
+  document.getElementById('chat').innerHTML = '';
+  document.getElementById('chat').style.display = 'none';
+  document.getElementById('welcome').classList.remove('hidden');
+}
+
+function copyLastResponse() {
+  const aiMessages = messages.filter(m => m.role === 'assistant');
+  if (!aiMessages.length) return;
+  navigator.clipboard.writeText(aiMessages[aiMessages.length - 1].content);
+  const btn = document.querySelector('[onclick="copyLastResponse()"]');
+  btn.textContent = 'Copiado!';
+  setTimeout(() => btn.textContent = 'Copiar resposta', 2000);
+}
+
+function quickPrompt(text) {
+  document.getElementById('user-input').value = text;
+  sendMessage();
+}
+
+function updateStatusDot(state) {
+  const dot = document.getElementById('status-dot');
+  dot.className = 'status-dot' + (state ? ' ' + state : '');
+}
+
+// ── INIT ──
+init();
+</script>
+</body>
+</html>
